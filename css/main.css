@@ -47,7 +47,10 @@ section {
 
 .btnDtls,
 .btnBack,
-.btnSearch {
+.btnSearch,
+.btnFav,
+.btnRmv,
+.btnMyFav {
     background-color: #9b9595;
     color: white;
     width: 95px;
@@ -69,5 +72,5 @@ article {
     border: solid #888888 2px;
     border-radius: 6px;
     box-shadow: 1px 1px 20px 3px #999;
-        
+
 }

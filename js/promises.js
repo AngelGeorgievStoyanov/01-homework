@@ -1,19 +1,24 @@
-
 let query = document.getElementById('search');
 let api = 'https://www.googleapis.com/books/v1/volumes?q=';
 let max = '&maxResults=40';
 let urlBook = 'https://www.googleapis.com/books/v1/volumes/';
 let btnSearch = document.getElementById('searchFunc');
+let btnMyFav = document.getElementById('myFav')
+btnMyFav.style.display = 'none';
 let div = document.getElementById('result');
 let arr = [];
 let bookDetails;
+let bookFavId = [];
+
 div.addEventListener('click', (e) => details(e));
 btnSearch.addEventListener('click', (e) => { if (query.value.trim() != '') { init(query.value.trim(), e) } });
+btnMyFav.addEventListener('click', (e) => myFavorist(e));
+
 
 
 
 function init(query, e) {
-    e.preventDefault()
+    e.preventDefault();
     let a = div.childNodes;
     if (a.length > 0) {
         let arrNode = Array.from(a);
@@ -81,6 +86,7 @@ function detailsPage(bookObj) {
 
 function details(e) {
     e.preventDefault();
+    const id = e.target.parentNode.id;
     if (e.target.className == 'btnDtls') {
         let a = div.childNodes;
         if (a.length > 0) {
@@ -89,7 +95,6 @@ function details(e) {
                 el.remove();
             }
         }
-        id = e.target.parentNode.id;
         fetch(urlBook + id)
             .then((x) => x.json())
             .then(book => {
@@ -109,6 +114,27 @@ function details(e) {
                 }
             }
             home(arr);
+        } else if (e.target.className == 'btnFav') {
+            btnMyFav.style.display = 'block';
+
+            fetch(urlBook + id)
+                .then((x) => x.json())
+                .then(book => {
+                    book = book
+                    bookFavId.push(id)
+                    localStorage.setItem(`${id}`, JSON.stringify(book));
+
+                })
+            e.target.textContent = 'Remove';
+            e.target.className = 'btnRmv';
+
+        } else if (e.target.className == 'btnRmv') {
+            let index = bookFavId.indexOf(id)
+            bookFavId.splice(index, 1)
+            bookFavId.length == 0 ? btnMyFav.style.display = 'none' : btnMyFav.style.display = 'block';
+            localStorage.removeItem(id);
+            e.target.textContent = 'Favorits';
+            e.target.className = 'btnFav'
         }
     }
 }
@@ -117,6 +143,9 @@ function home(arrBook) {
     query.value = '';
     arrBook.forEach(e => {
         let idBook = e.id;
+
+        const hasFavorit = bookFavId.some((x) => x == idBook)
+
 
         let section = elem('section', false, false, false, false, false, idBook);
 
@@ -136,17 +165,47 @@ function home(arrBook) {
         let img = elem('img', false, false, 128, 158, src);
 
         let buttonDtls = elem('button', 'btnDtls', 'Details', false, false, false);
+        let buttonFavorits
+        if (hasFavorit) {
+            buttonFavorits = elem('button', 'btnRmv', 'Remove', false, false, false);
+        } else {
+            buttonFavorits = elem('button', 'btnFav', 'Favorits', false, false, false);
+        }
+
+
 
         section.appendChild(h3);
         section.appendChild(img);
         section.appendChild(buttonDtls);
+        section.appendChild(buttonFavorits);
+
         div.appendChild(section);
 
     });
 
 }
 
+function myFavorist(e) {
+    e.preventDefault()
+   let bookFavArr = [];
+    bookFavId.forEach((e) => {
+        let item = JSON.parse(localStorage.getItem(e))
 
+
+        bookFavArr.push(item)
+
+
+    })
+    let a = div.childNodes;
+    if (a.length > 0) {
+        let arrNode = Array.from(a);
+        for (const el of arrNode) {
+            el.remove();
+        }
+    }
+
+    home(bookFavArr)
+}
 
 function elem(a, b, c, d, e, f, z) {
     let element = document.createElement(a);
